@@ -18,7 +18,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 複製應用代碼
 COPY scripts/ ./scripts/
 COPY documents/ ./documents/
-COPY .env ./.env
+
+# 創建預設的 .env 文件（如果需要）
+RUN echo "# 默認環境配置\n\
+# 實際部署時將被環境變量覆蓋\n\
+EMBEDDING_MODEL=BAAI/bge-base-zh\n\
+MODEL_NAME=deepseek-chat" > .env
 
 # 創建必要目錄
 RUN mkdir -p faiss_index logs

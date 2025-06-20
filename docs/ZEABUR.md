@@ -6,9 +6,11 @@
 2. 取得 DeepSeek API 密鑰，用於 LLM 查詢功能
 3. 準備好專案代碼並推送到 Git 倉庫
 
-## 所需密鑰與環境變數
+## 所需環境變數
 
-- `DEEPSEEK_API_KEY`: DeepSeek API 密鑰
+所有配置都通過環境變數進行設置，無需 `.env` 文件：
+
+- `DEEPSEEK_API_KEY`: DeepSeek API 密鑰（**必需**）
 - `EMBEDDING_MODEL`: 嵌入模型名稱 (預設: `BAAI/bge-base-zh`)
 - `MODEL_NAME`: 語言模型名稱 (預設: `deepseek-chat`)
 - `NEXT_PUBLIC_API_URL`: API 服務的 URL (生產環境下設置)

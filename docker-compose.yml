@@ -9,11 +9,11 @@ services:
       - ./documents:/app/documents
       - ./faiss_index:/app/faiss_index
       - ./logs:/app/logs
-      - ./.env:/app/.env
     environment:
       - PYTHONPATH=/app
-      # 可在此處覆蓋環境變數
-      # - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL:-BAAI/bge-base-zh}
+      - MODEL_NAME=${MODEL_NAME:-deepseek-chat}
     restart: unless-stopped
 
   nginx:
