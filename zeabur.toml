@@ -1,0 +1,34 @@
+[build]
+  buildCommand = "npm run build"
+
+[services]
+  [services.web]
+    type = "nextjs"
+    buildCommand = "npm run build"
+    startCommand = "npm run start"
+    port = 3000
+
+  [services.api]
+    type = "python"
+    buildCommand = "pip install -r scripts/requirements.txt"
+    startCommand = "python scripts/api_server.py"
+    port = 8000
+
+[persistentVolumes]
+  [persistentVolumes.storage]
+    mountPath = "/app/documents"
+    size = "1Gi"
+
+  [persistentVolumes.faiss]
+    mountPath = "/app/faiss_index"
+    size = "1Gi"
+
+  [persistentVolumes.logs]
+    mountPath = "/app/logs"
+    size = "500Mi"
+
+[env]
+  NODE_ENV = "production"
+  DEEPSEEK_API_KEY = "$DEEPSEEK_API_KEY"
+  EMBEDDING_MODEL = "BAAI/bge-base-zh"
+  MODEL_NAME = "deepseek-chat" 
