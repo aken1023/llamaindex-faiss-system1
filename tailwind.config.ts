@@ -9,6 +9,15 @@ const config: Config = {
     "*.{js,ts,jsx,tsx,mdx}"
   ],
   theme: {
+    screens: {
+      'xs': '390px',
+      'sm': '640px',
+      'md': '768px',
+      'lg': '1024px',
+      'xl': '1280px',
+      '2xl': '1536px',
+      '3xl': '1920px',
+    },
   	extend: {
   		colors: {
   			background: 'hsl(var(--background))',
@@ -88,7 +97,20 @@ const config: Config = {
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
   			'accordion-up': 'accordion-up 0.2s ease-out'
-  		}
+  		},
+      spacing: {
+        '4.5': '1.125rem',
+        '5.5': '1.375rem',
+        '18': '4.5rem',
+      },
+      container: {
+        center: true,
+        padding: {
+          DEFAULT: '1rem',
+          sm: '1.5rem',
+          md: '2rem',
+        },
+      },
   	}
   },
   plugins: [require("tailwindcss-animate")],
