@@ -1,0 +1,31 @@
+# LlamaIndex + FAISS + 本地 LLM 系統依賴
+
+# 核心框架
+llama-index==0.9.48
+llama-index-vector-stores-faiss==0.1.2
+
+# 向量搜索
+faiss-cpu==1.7.4
+sentence-transformers==2.2.2
+
+# 文檔處理
+pypdf==3.17.4
+python-docx==1.1.0
+markdown==3.5.2
+
+# 機器學習
+torch==2.1.2
+transformers==4.36.2
+numpy==1.24.4
+
+# Web 框架 (可選)
+fastapi==0.104.1
+uvicorn==0.24.0
+
+# 工具庫
+requests==2.31.0
+python-dotenv==1.0.0
+pydantic==2.5.2
+
+# 日誌和監控
+loguru==0.7.2
