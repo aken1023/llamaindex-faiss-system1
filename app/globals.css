@@ -10,6 +10,19 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+  
+  /* 響應式設計輔助類 */
+  .responsive-padding {
+    @apply px-3 sm:px-4 md:px-6 lg:px-8;
+  }
+  
+  .responsive-margin {
+    @apply my-3 sm:my-4 md:my-6 lg:my-8;
+  }
+  
+  .responsive-container {
+    @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
 }
 
 @layer base {

@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { ResponsiveContainer } from "@/components/ui/responsive-container"
 
 // API 基礎 URL 設置
 const getApiBaseUrl = () => {
@@ -388,13 +388,13 @@ export default function KnowledgeBaseSystem() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-100 p-4">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-100 p-4 relative">
+      <ResponsiveContainer maxWidth="2xl" padding centered>
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-slate-900 mb-4">企業知識庫系統</h1>
-          <p className="text-xl text-slate-800 mb-6">企業知識管理解決方案 - 智能檢索、分析與應用</p>
-          <p className="text-base text-slate-700 mb-6 max-w-3xl mx-auto">
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 mb-4">企業知識庫系統</h1>
+          <p className="text-base md:text-xl text-slate-800 mb-6">企業知識管理解決方案 - 智能檢索、分析與應用</p>
+          <p className="text-sm md:text-base text-slate-700 mb-6 max-w-3xl mx-auto">
             企業知識管理是組織獲取、整理、共享和應用集體智慧的系統性方法。通過整合先進的人工智能技術，
             我們的系統能夠自動化知識提取、智能檢索和深度分析，幫助企業提升決策效率、促進創新和保存寶貴的組織經驗。
           </p>
@@ -699,6 +699,13 @@ export default function KnowledgeBaseSystem() {
             </Alert>
           </TabsContent>
         </Tabs>
+      </ResponsiveContainer>
+      
+      {/* 作者宣告 */}
+      <div className="fixed bottom-3 right-3 md:bottom-5 md:right-5 z-10">
+        <div className="bg-white/80 backdrop-blur-sm px-3 py-1.5 rounded-md shadow-md border border-slate-200 text-sm text-slate-700">
+          Created by <span className="font-medium text-blue-700">aken</span>
+        </div>
       </div>
     </div>
   )
