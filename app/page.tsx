@@ -290,12 +290,21 @@ export default function KnowledgeBaseSystem() {
         // 讀取文件並轉換為Base64
         const fileContent = await readFileAsBase64(file);
         
+        // 從localStorage獲取token
+        const token = localStorage.getItem('access_token');
+        const headers: HeadersInit = {
+          'Content-Type': 'application/json'
+        };
+        
+        // 如果有token則添加到請求頭
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+        
         // 發送Base64編碼的文件內容
         const response = await fetch(`${API_BASE_URL}/upload`, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers,
           body: JSON.stringify({
             filename: file.name,
             content_base64: fileContent,
