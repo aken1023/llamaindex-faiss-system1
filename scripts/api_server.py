@@ -6,6 +6,7 @@ import shutil
 import time
 import uuid
 from pathlib import Path
+from typing import List, Optional
 
 import edge_tts
 from dotenv import load_dotenv
@@ -13,18 +14,14 @@ from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
-from typing import List, Optional
+from setup_knowledge_base import KnowledgeBaseSystem
 
 # 載入環境變數
 load_dotenv()
 
-# 導入知識庫系統
-from setup_knowledge_base import KnowledgeBaseSystem
-
-
 app = FastAPI(title="企業知識庫 API", version="1.0.0")
 
-# 添加 CORS 中間件
+# 添加 CORS 中間件，允許所有來源
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -59,6 +56,35 @@ class TextToSpeechRequest(BaseModel):
     voice: str = "zh-TW-HsiaoChenNeural"  # 默認使用台灣女聲
     rate: str = "+0%"                     # 語速，默認正常
     volume: str = "+0%"                   # 音量，默認正常
+
+
+# 預定義的中文語音列表，以防 edge_tts.list_voices() 失敗
+DEFAULT_CHINESE_VOICES = [
+    {
+        "ShortName": "zh-TW-HsiaoChenNeural",
+        "DisplayName": "曉臻 (女聲)",
+        "Locale": "zh-TW",
+        "Gender": "Female"
+    },
+    {
+        "ShortName": "zh-TW-YunJheNeural",
+        "DisplayName": "雲哲 (男聲)",
+        "Locale": "zh-TW",
+        "Gender": "Male"
+    },
+    {
+        "ShortName": "zh-CN-XiaoxiaoNeural",
+        "DisplayName": "曉曉 (女聲)",
+        "Locale": "zh-CN",
+        "Gender": "Female"
+    },
+    {
+        "ShortName": "zh-CN-YunyangNeural",
+        "DisplayName": "雲揚 (男聲)",
+        "Locale": "zh-CN",
+        "Gender": "Male"
+    }
+]
 
 
 # 全局知識庫實例
@@ -172,21 +198,46 @@ async def list_documents():
 async def list_voices():
     """獲取所有可用的語音列表"""
     try:
-        voices = await edge_tts.list_voices()
-        # 篩選中文語音
-        chinese_voices = [
+        # 嘗試從 edge-tts 獲取語音列表
+        try:
+            voices = await edge_tts.list_voices()
+            # 篩選中文語音
+            chinese_voices = [
+                {
+                    "name": voice["ShortName"],
+                    "display_name": voice["DisplayName"],
+                    "locale": voice["Locale"],
+                    "gender": voice["Gender"]
+                }
+                for voice in voices
+                if voice["Locale"].startswith("zh-")
+            ]
+            if chinese_voices:
+                return chinese_voices
+        except Exception as e:
+            print(f"從 edge-tts 獲取語音列表失敗: {e}")
+        
+        # 如果 edge-tts 獲取失敗，使用預定義的語音列表
+        return [
             {
                 "name": voice["ShortName"],
                 "display_name": voice["DisplayName"],
                 "locale": voice["Locale"],
                 "gender": voice["Gender"]
             }
-            for voice in voices
-            if voice["Locale"].startswith("zh-")
+            for voice in DEFAULT_CHINESE_VOICES
         ]
-        return chinese_voices
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"獲取語音列表失敗: {str(e)}")
+        # 確保即使發生錯誤也返回一些默認值，而不是拋出異常
+        print(f"獲取語音列表時發生錯誤: {e}")
+        return [
+            {
+                "name": "zh-TW-HsiaoChenNeural",
+                "display_name": "曉臻 (女聲)",
+                "locale": "zh-TW",
+                "gender": "Female"
+            }
+        ]
 
 
 @app.post("/text-to-speech")
@@ -263,4 +314,4 @@ async def query_with_speech(request: QueryRequest):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8002)
