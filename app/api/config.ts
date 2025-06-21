@@ -3,7 +3,7 @@
  * 根據環境變數設置API的基礎URL
  */
 
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://ragaken.zeabur.app:8000';
 
 /**
  * API 端點列表

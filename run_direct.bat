@@ -18,7 +18,7 @@ if not exist "venv\Scripts\python.exe" (
 :: 啟動後端（在背景執行）
 echo [後端] 啟動中...
 start cmd /c "venv\Scripts\python.exe scripts\api_server.py"
-echo [後端] API 服務已在 http://localhost:8000 啟動
+echo [後端] API 服務已在 http://ragaken.zeabur.app:8000 啟動
 
 :: 等待後端啟動
 echo [系統] 等待後端服務啟動...
@@ -40,8 +40,8 @@ echo ======================================================
 echo   系統已啟動！
 echo.
 echo   * 前端界面: http://localhost:3000
-echo   * API 服務: http://localhost:8000
-echo   * API 文檔: http://localhost:8000/docs
+echo   * API 服務: http://ragaken.zeabur.app:8000
+echo   * API 文檔: http://ragaken.zeabur.app:8000/docs
 echo ======================================================
 echo.
 echo 按 Ctrl+C 然後輸入 Y 來關閉所有服務
