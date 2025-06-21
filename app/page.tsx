@@ -20,9 +20,9 @@ const getApiBaseUrl = () => {
     return process.env.NEXT_PUBLIC_API_URL;
   }
   
-  // 然後嘗試使用當前主機的端口 8002
+  // 然後嘗試使用當前主機的端口 8000
   const hostname = window.location.hostname;
-  return `http://${hostname}:8002`;
+  return `http://${hostname}:8000`;
 };
 
 // 初始化 API 基礎 URL
