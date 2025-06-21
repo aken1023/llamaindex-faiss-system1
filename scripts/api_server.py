@@ -3,16 +3,13 @@ FastAPI 服務器 - 提供 REST API 接口
 """
 
 import time
-import uuid
 import base64
 from pathlib import Path
 from typing import List, Optional
 
-import edge_tts
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from setup_knowledge_base import KnowledgeBaseSystem
 
@@ -51,55 +48,15 @@ class SystemStatus(BaseModel):
     model_status: str
 
 
-class TextToSpeechRequest(BaseModel):
-    text: str
-    voice: str = "zh-TW-HsiaoChenNeural"  # 默認使用台灣女聲
-    rate: str = "+0%"                     # 語速，默認正常
-    volume: str = "+0%"                   # 音量，默認正常
-
-
-# 新增：文件上傳請求模型
+# 文件上傳請求模型
 class FileUploadRequest(BaseModel):
     filename: str
     content_base64: str
     content_type: Optional[str] = None
 
 
-# 預定義的中文語音列表，以防 edge_tts.list_voices() 失敗
-DEFAULT_CHINESE_VOICES = [
-    {
-        "ShortName": "zh-TW-HsiaoChenNeural",
-        "DisplayName": "曉臻 (女聲)",
-        "Locale": "zh-TW",
-        "Gender": "Female"
-    },
-    {
-        "ShortName": "zh-TW-YunJheNeural",
-        "DisplayName": "雲哲 (男聲)",
-        "Locale": "zh-TW",
-        "Gender": "Male"
-    },
-    {
-        "ShortName": "zh-CN-XiaoxiaoNeural",
-        "DisplayName": "曉曉 (女聲)",
-        "Locale": "zh-CN",
-        "Gender": "Female"
-    },
-    {
-        "ShortName": "zh-CN-YunyangNeural",
-        "DisplayName": "雲揚 (男聲)",
-        "Locale": "zh-CN",
-        "Gender": "Male"
-    }
-]
-
-
 # 全局知識庫實例
 kb_system = KnowledgeBaseSystem()
-
-# 確保音頻文件目錄存在
-AUDIO_DIR = Path("audio_files")
-AUDIO_DIR.mkdir(exist_ok=True)
 
 
 @app.on_event("startup")
@@ -144,7 +101,8 @@ async def upload_document(file_data: FileUploadRequest):
             "size": file_path.stat().st_size
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"上傳失敗: {str(e)}")
+        detail = f"上傳失敗: {str(e)}"
+        raise HTTPException(status_code=500, detail=detail)
 
 
 @app.post("/query", response_model=dict)
@@ -171,7 +129,8 @@ async def query_knowledge_base(request: QueryRequest):
             "processing_time": processing_time
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"查詢失敗: {str(e)}")
+        detail = f"查詢失敗: {str(e)}"
+        raise HTTPException(status_code=500, detail=detail)
 
 
 @app.get("/status", response_model=dict)
@@ -204,124 +163,6 @@ async def list_documents():
             })
     
     return documents
-
-
-@app.get("/voices", response_model=List[dict])
-async def list_voices():
-    """獲取所有可用的語音列表"""
-    try:
-        # 嘗試從 edge-tts 獲取語音列表
-        try:
-            voices = await edge_tts.list_voices()
-            # 篩選中文語音
-            chinese_voices = [
-                {
-                    "name": voice["ShortName"],
-                    "display_name": voice["DisplayName"],
-                    "locale": voice["Locale"],
-                    "gender": voice["Gender"]
-                }
-                for voice in voices
-                if voice["Locale"].startswith("zh-")
-            ]
-            if chinese_voices:
-                return chinese_voices
-        except Exception as e:
-            print(f"從 edge-tts 獲取語音列表失敗: {e}")
-        
-        # 如果 edge-tts 獲取失敗，使用預定義的語音列表
-        return [
-            {
-                "name": voice["ShortName"],
-                "display_name": voice["DisplayName"],
-                "locale": voice["Locale"],
-                "gender": voice["Gender"]
-            }
-            for voice in DEFAULT_CHINESE_VOICES
-        ]
-    except Exception as e:
-        # 確保即使發生錯誤也返回一些默認值，而不是拋出異常
-        print(f"獲取語音列表時發生錯誤: {e}")
-        return [
-            {
-                "name": "zh-TW-HsiaoChenNeural",
-                "display_name": "曉臻 (女聲)",
-                "locale": "zh-TW",
-                "gender": "Female"
-            }
-        ]
-
-
-@app.post("/text-to-speech")
-async def text_to_speech(request: TextToSpeechRequest):
-    """將文字轉換為語音"""
-    try:
-        # 生成唯一文件名
-        file_name = f"{uuid.uuid4()}.mp3"
-        file_path = AUDIO_DIR / file_name
-        
-        # 使用 Edge-TTS 生成語音
-        communicate = edge_tts.Communicate(
-            request.text, 
-            request.voice,
-            rate=request.rate,
-            volume=request.volume
-        )
-        
-        # 保存語音文件
-        await communicate.save(str(file_path))
-        
-        # 返回音頻文件的URL
-        return {
-            "success": True,
-            "audio_url": f"/audio/{file_name}",
-            "voice": request.voice
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"語音合成失敗: {str(e)}")
-
-
-@app.get("/audio/{file_name}")
-async def get_audio(file_name: str):
-    """獲取生成的音頻文件"""
-    file_path = AUDIO_DIR / file_name
-    if not file_path.exists():
-        raise HTTPException(status_code=404, detail="音頻文件不存在")
-    
-    return FileResponse(
-        path=file_path,
-        media_type="audio/mpeg",
-        filename=file_name
-    )
-
-
-@app.post("/query-with-speech")
-async def query_with_speech(request: QueryRequest):
-    """查詢知識庫並返回語音回答"""
-    try:
-        # 先執行普通查詢
-        result = await query_knowledge_base(request)
-        answer = result["answer"]
-        
-        # 生成唯一文件名
-        file_name = f"{uuid.uuid4()}.mp3"
-        file_path = AUDIO_DIR / file_name
-        
-        # 使用 Edge-TTS 生成語音
-        communicate = edge_tts.Communicate(
-            answer, 
-            "zh-TW-HsiaoChenNeural"  # 默認使用台灣女聲
-        )
-        
-        # 保存語音文件
-        await communicate.save(str(file_path))
-        
-        # 將語音URL添加到結果中
-        result["audio_url"] = f"/audio/{file_name}"
-        
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"查詢或語音合成失敗: {str(e)}")
 
 
 if __name__ == "__main__":

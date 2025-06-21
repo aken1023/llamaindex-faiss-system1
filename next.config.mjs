@@ -11,7 +11,6 @@ const nextConfig = {
     formats: ['image/avif', 'image/webp'],
   },
   reactStrictMode: true,
-  swcMinify: true,
 }
 
 export default nextConfig

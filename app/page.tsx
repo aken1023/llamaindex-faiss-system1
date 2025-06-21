@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect, useRef } from "react"
-import { Upload, Search, FileText, Database, Cpu, MessageSquare, Loader2, Volume2, VolumeX } from "lucide-react"
+import { Upload, Search, FileText, Database, Cpu, MessageSquare, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -65,13 +65,7 @@ export default function KnowledgeBaseSystem() {
   const [indexStatus, setIndexStatus] = useState("ready")
   const [systemStatus, setSystemStatus] = useState<any>(null)
   const [loadingDots, setLoadingDots] = useState("")
-  const [audioUrl, setAudioUrl] = useState<string | null>(null)
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [voices, setVoices] = useState<Voice[]>(DEFAULT_VOICES)
-  const [selectedVoice, setSelectedVoice] = useState("zh-TW-HsiaoChenNeural")
-  const [isLoadingVoices, setIsLoadingVoices] = useState(false)
   const [apiConnected, setApiConnected] = useState<boolean | null>(null) // null表示未知，true表示連接，false表示斷開
-  const audioRef = useRef<HTMLAudioElement | null>(null)
 
   // 載入文件列表和系統狀態
   useEffect(() => {
@@ -81,7 +75,6 @@ export default function KnowledgeBaseSystem() {
         // 如果API連接成功，載入數據
         fetchDocuments();
         fetchSystemStatus();
-        fetchVoices();
       } else {
         console.log("API服務器未連接，進入離線模式");
         // 使用空數據或默認數據
@@ -145,7 +138,6 @@ export default function KnowledgeBaseSystem() {
         // 如果連接成功，重新獲取數據
         fetchDocuments();
         fetchSystemStatus();
-        fetchVoices();
       }
     }, 100);
   };
@@ -277,62 +269,7 @@ export default function KnowledgeBaseSystem() {
     }
   };
 
-  // 獲取語音列表，添加重試機制
-  const fetchVoices = async (retryCount = 0) => {
-    // 如果API未連接，不嘗試獲取
-    if (apiConnected === false) {
-      console.log("API未連接，使用默認語音列表");
-      return;
-    }
-    
-    if (retryCount > 3) {
-      console.warn("獲取語音列表失敗多次，使用默認語音");
-      return;
-    }
-    
-    setIsLoadingVoices(true);
-    
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5秒超時
-      
-      const response = await fetch(`${API_BASE_URL}/voices`, {
-        signal: controller.signal
-      });
-      
-      clearTimeout(timeoutId);
-      
-      if (!response.ok) {
-        throw new Error(`API返回錯誤: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      // 確保返回的數據是數組
-      if (Array.isArray(data) && data.length > 0) {
-        console.log("成功獲取語音列表:", data.length, "個語音");
-        setVoices(data);
-      } else {
-        console.warn("獲取的語音列表為空或格式不正確，使用默認語音");
-      }
-    } catch (error: any) {
-      console.error("獲取語音列表失敗:", error);
-      
-      // 如果是網絡錯誤或超時，嘗試重試
-      if (error instanceof TypeError || (error.name && error.name === 'AbortError')) {
-        console.log(`嘗試重新獲取語音列表，第 ${retryCount + 1} 次...`);
-        setTimeout(() => fetchVoices(retryCount + 1), 2000); // 2秒後重試
-      }
-      
-      // 如果多次獲取失敗，可能API已斷開
-      if (retryCount >= 2) {
-        setApiConnected(false);
-      }
-    } finally {
-      setIsLoadingVoices(false);
-    }
-  };
-
+  // 文件上傳處理
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
@@ -392,12 +329,11 @@ export default function KnowledgeBaseSystem() {
     });
   };
 
-  const handleQuery = async (withSpeech = false) => {
+  const handleQuery = async () => {
     if (!query.trim()) return;
 
     setIsLoading(true);
     setResponse(""); // 清空舊回應
-    setAudioUrl(null); // 清空舊的音頻URL
     
     try {
       // 檢查API是否可用
@@ -424,7 +360,7 @@ export default function KnowledgeBaseSystem() {
       }
       
       // 正常模式：連接API
-      const endpoint = withSpeech ? `${API_BASE_URL}/query-with-speech` : `${API_BASE_URL}/query`;
+      const endpoint = `${API_BASE_URL}/query`;
       
       const response = await fetch(endpoint, {
         method: "POST",
@@ -440,11 +376,6 @@ export default function KnowledgeBaseSystem() {
       if (response.ok) {
         const data = await response.json();
         setResponse(data.answer);
-        
-        // 如果有語音URL，設置它
-        if (data.audio_url) {
-          setAudioUrl(`${API_BASE_URL}${data.audio_url}`);
-        }
       } else {
         setResponse(`查詢失敗，伺服器返回錯誤: ${response.status} ${response.statusText}`);
       }
@@ -454,80 +385,6 @@ export default function KnowledgeBaseSystem() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // 生成語音
-  const generateSpeech = async () => {
-    if (!response) return;
-    
-    try {
-      setIsLoading(true);
-      
-      // 檢查API是否可用
-      try {
-        const testResponse = await fetch(`${API_BASE_URL}/status`, { 
-          method: 'GET',
-          signal: AbortSignal.timeout(2000) // 2秒超時
-        });
-        
-        if (!testResponse.ok) {
-          throw new Error("API服務器不可用");
-        }
-      } catch (error) {
-        console.error("無法連接到API服務器:", error);
-        alert("無法連接到語音服務器，請確認API服務器是否運行。");
-        setIsLoading(false);
-        return;
-      }
-      
-      const speechResponse = await fetch(`${API_BASE_URL}/text-to-speech`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          text: response,
-          voice: selectedVoice
-        }),
-      });
-      
-      if (speechResponse.ok) {
-        const data = await speechResponse.json();
-        setAudioUrl(`${API_BASE_URL}${data.audio_url}`);
-        // 自動播放
-        setTimeout(() => {
-          if (audioRef.current) {
-            audioRef.current.play()
-              .then(() => setIsPlaying(true))
-              .catch(err => console.error("自動播放失敗:", err));
-          }
-        }, 100);
-      } else {
-        console.error("語音生成請求失敗:", await speechResponse.text());
-        alert("語音生成失敗，請稍後再試。");
-      }
-    } catch (error) {
-      console.error("生成語音失敗", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // 播放/暫停音頻
-  const toggleAudio = () => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause();
-      } else {
-        audioRef.current.play().catch(err => console.error("播放失敗:", err));
-      }
-      setIsPlaying(!isPlaying);
-    }
-  };
-
-  // 音頻播放結束時的處理
-  const handleAudioEnded = () => {
-    setIsPlaying(false);
   };
 
   return (
@@ -602,7 +459,7 @@ export default function KnowledgeBaseSystem() {
                   />
                   <div className="flex gap-2">
                     <Button 
-                      onClick={() => handleQuery(false)} 
+                      onClick={() => handleQuery()} 
                       disabled={isLoading || !query.trim()} 
                       className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium"
                     >
@@ -614,14 +471,6 @@ export default function KnowledgeBaseSystem() {
                       ) : (
                         "開始查詢"
                       )}
-                    </Button>
-                    <Button 
-                      onClick={() => handleQuery(true)} 
-                      disabled={isLoading || !query.trim()} 
-                      className="bg-green-600 hover:bg-green-700 text-white"
-                      title="查詢並自動生成語音回答"
-                    >
-                      <Volume2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </CardContent>
@@ -644,67 +493,14 @@ export default function KnowledgeBaseSystem() {
                   ) : response ? (
                     <div className="space-y-4">
                       <div className="relative prose prose-sm max-w-none">
-                        {/* 語音控制按鈕 */}
-                        <div className="flex items-center justify-end gap-2 mb-3">
-                          {audioUrl ? (
-                            <Button 
-                              onClick={toggleAudio} 
-                              variant="outline" 
-                              size="sm"
-                              className="flex items-center gap-1 h-8 px-3 py-1 rounded-md"
-                            >
-                              {isPlaying ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-                              <span>{isPlaying ? "停止播放" : "播放語音"}</span>
-                            </Button>
-                          ) : (
-                            <Button 
-                              onClick={generateSpeech} 
-                              variant="outline"
-                              size="sm"
-                              disabled={isLoading || !apiConnected}
-                              className="flex items-center gap-1 h-8 px-3 py-1 rounded-md"
-                            >
-                              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Volume2 className="h-4 w-4" />}
-                              <span>生成語音</span>
-                            </Button>
-                          )}
-                          
-                          <Select value={selectedVoice} onValueChange={setSelectedVoice}>
-                            <SelectTrigger className="w-[180px] h-8 text-sm">
-                              <SelectValue placeholder="選擇語音" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {voices && Array.isArray(voices) && voices.length > 0 ? (
-                                voices.map((voice) => (
-                                  <SelectItem key={voice.name} value={voice.name}>
-                                    {voice.display_name}
-                                  </SelectItem>
-                                ))
-                              ) : (
-                                DEFAULT_VOICES.map((voice) => (
-                                  <SelectItem key={voice.name} value={voice.name}>
-                                    {voice.display_name}
-                                  </SelectItem>
-                                ))
-                              )}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        
-                        {/* AI 回答內容 */}
-                        <pre className="whitespace-pre-wrap text-sm bg-white p-4 rounded-lg border border-slate-200 text-slate-800">{response}</pre>
-                        {audioUrl && (
-                          <audio 
-                            ref={audioRef} 
-                            src={audioUrl} 
-                            onEnded={handleAudioEnded}
-                            style={{ display: 'none' }}
-                          />
-                        )}
+                        <div className="whitespace-pre-wrap text-slate-800">{response}</div>
                       </div>
                     </div>
                   ) : (
-                    <div className="text-slate-700 text-center py-8">請輸入問題開始查詢</div>
+                    <div className="flex flex-col items-center justify-center h-48 text-slate-500">
+                      <MessageSquare className="h-12 w-12 mb-4 opacity-30" />
+                      <p>輸入問題後點擊「開始查詢」獲取回答</p>
+                    </div>
                   )}
                 </CardContent>
               </Card>

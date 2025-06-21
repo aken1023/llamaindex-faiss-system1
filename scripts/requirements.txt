@@ -29,7 +29,3 @@ pydantic>=2.5.2
 
 # 日誌和監控
 loguru>=0.7.2
-
-# 語音合成
-edge-tts>=6.1.9
-aiofiles>=23.2.1
