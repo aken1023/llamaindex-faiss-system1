@@ -23,6 +23,28 @@ interface Voice {
   gender: string;
 }
 
+// 默認語音選項，以防API無法獲取
+const DEFAULT_VOICES: Voice[] = [
+  {
+    name: "zh-TW-HsiaoChenNeural",
+    display_name: "曉臻 (女聲)",
+    locale: "zh-TW",
+    gender: "Female"
+  },
+  {
+    name: "zh-TW-YunJheNeural",
+    display_name: "雲哲 (男聲)",
+    locale: "zh-TW",
+    gender: "Male"
+  },
+  {
+    name: "zh-CN-XiaoxiaoNeural",
+    display_name: "曉曉 (女聲)",
+    locale: "zh-CN",
+    gender: "Female"
+  }
+];
+
 export default function KnowledgeBaseSystem() {
   const [query, setQuery] = useState("")
   const [response, setResponse] = useState("")
@@ -33,7 +55,7 @@ export default function KnowledgeBaseSystem() {
   const [loadingDots, setLoadingDots] = useState("")
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
-  const [voices, setVoices] = useState<Voice[]>([])
+  const [voices, setVoices] = useState<Voice[]>(DEFAULT_VOICES)
   const [selectedVoice, setSelectedVoice] = useState("zh-TW-HsiaoChenNeural")
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
@@ -85,8 +107,19 @@ export default function KnowledgeBaseSystem() {
   const fetchVoices = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/voices`);
+      if (!response.ok) {
+        console.error("獲取語音列表失敗，使用默認語音");
+        return;
+      }
+      
       const data = await response.json();
-      setVoices(data);
+      
+      // 確保返回的數據是數組
+      if (Array.isArray(data) && data.length > 0) {
+        setVoices(data);
+      } else {
+        console.warn("獲取的語音列表為空或格式不正確，使用默認語音");
+      }
     } catch (error) {
       console.error("獲取語音列表失敗", error);
     }
@@ -298,52 +331,63 @@ export default function KnowledgeBaseSystem() {
                     </div>
                   ) : response ? (
                     <div className="space-y-4">
-                      <div className="prose prose-sm max-w-none">
-                        <pre className="whitespace-pre-wrap text-sm bg-white p-4 rounded-lg border border-slate-200 text-slate-800">{response}</pre>
-                      </div>
-                      
-                      <div className="flex items-center gap-4 mt-4">
-                        {audioUrl ? (
-                          <>
+                      <div className="relative prose prose-sm max-w-none">
+                        <div className="absolute top-2 right-2 flex gap-2">
+                          {audioUrl ? (
                             <Button 
                               onClick={toggleAudio} 
-                              variant="outline" 
-                              className="flex items-center gap-2"
+                              variant="ghost" 
+                              size="sm"
+                              className="flex items-center gap-1 h-8 px-2 py-1 rounded-md bg-slate-100 hover:bg-slate-200"
                             >
                               {isPlaying ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-                              {isPlaying ? "停止播放" : "播放語音"}
+                              <span className="text-xs">{isPlaying ? "停止" : "播放"}</span>
                             </Button>
-                            <audio 
-                              ref={audioRef} 
-                              src={audioUrl} 
-                              onEnded={handleAudioEnded}
-                              style={{ display: 'none' }}
-                            />
-                          </>
-                        ) : (
-                          <div className="flex items-center gap-2">
-                            <Select value={selectedVoice} onValueChange={setSelectedVoice}>
-                              <SelectTrigger className="w-[240px]">
-                                <SelectValue placeholder="選擇語音" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {voices.map((voice) => (
-                                  <SelectItem key={voice.name} value={voice.name}>
-                                    {voice.display_name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                          ) : (
                             <Button 
                               onClick={generateSpeech} 
-                              variant="outline"
-                              className="flex items-center gap-2"
+                              variant="ghost"
+                              size="sm"
+                              className="flex items-center gap-1 h-8 px-2 py-1 rounded-md bg-slate-100 hover:bg-slate-200"
                             >
                               <Volume2 className="h-4 w-4" />
-                              生成語音
+                              <span className="text-xs">語音</span>
                             </Button>
-                          </div>
+                          )}
+                        </div>
+                        <pre className="whitespace-pre-wrap text-sm bg-white p-4 rounded-lg border border-slate-200 text-slate-800">{response}</pre>
+                        {audioUrl && (
+                          <audio 
+                            ref={audioRef} 
+                            src={audioUrl} 
+                            onEnded={handleAudioEnded}
+                            style={{ display: 'none' }}
+                          />
                         )}
+                      </div>
+                      
+                      <div className="flex items-center gap-2 mt-4">
+                        <div className="text-sm text-slate-600 mr-2">語音設置:</div>
+                        <Select value={selectedVoice} onValueChange={setSelectedVoice}>
+                          <SelectTrigger className="w-[240px] h-8 text-sm">
+                            <SelectValue placeholder="選擇語音" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {voices && Array.isArray(voices) && voices.length > 0 ? (
+                              voices.map((voice) => (
+                                <SelectItem key={voice.name} value={voice.name}>
+                                  {voice.display_name}
+                                </SelectItem>
+                              ))
+                            ) : (
+                              DEFAULT_VOICES.map((voice) => (
+                                <SelectItem key={voice.name} value={voice.name}>
+                                  {voice.display_name}
+                                </SelectItem>
+                              ))
+                            )}
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
                   ) : (
