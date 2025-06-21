@@ -15,6 +15,11 @@ import { ResponsiveContainer } from "@/components/ui/responsive-container"
 
 // API 基礎 URL 設置
 const getApiBaseUrl = () => {
+  // 使用Zeabur託管的API
+  return "https://ragaken.zeabur.app:8000";
+  
+  // 注释掉原有代码
+  /*
   // 首先檢查環境變量
   if (process.env.NEXT_PUBLIC_API_URL) {
     return process.env.NEXT_PUBLIC_API_URL;
@@ -23,6 +28,7 @@ const getApiBaseUrl = () => {
   // 然後嘗試使用當前主機的端口 8000
   const hostname = window.location.hostname;
   return `http://${hostname}:8000`;
+  */
 };
 
 // 初始化 API 基礎 URL
