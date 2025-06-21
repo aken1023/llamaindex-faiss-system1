@@ -15,8 +15,8 @@ import { ResponsiveContainer } from "@/components/ui/responsive-container"
 
 // API 基礎 URL 設置
 const getApiBaseUrl = () => {
-  // 使用Zeabur託管的API
-  return "https://ragaken.zeabur.app:8000";
+  // 根據curl測試，Zeabur強制使用HTTPS
+  return "https://ragaken.zeabur.app";
   
   // 注释掉原有代码
   /*
@@ -98,37 +98,37 @@ export default function KnowledgeBaseSystem() {
   // 檢查API連接狀態
   const checkApiConnection = async (): Promise<boolean> => {
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3000); // 3秒超時
+      console.log("嘗試連接API (簡單方式): " + API_BASE_URL);
       
-      // 使用更可靠的錯誤處理
+      // 使用最簡單的fetch，完全沒有signal和超時
+      const response = await fetch(`${API_BASE_URL}/`);
+      console.log("API回應狀態碼:", response.status);
+      
+      const isConnected = response.ok;
+      setApiConnected(isConnected);
+      
+      if (isConnected) {
+        console.log("API連接成功!");
+      } else {
+        console.log("API連接失敗，狀態碼:", response.status);
+      }
+      
+      return isConnected;
+    } catch (error) {
+      console.error("API連接錯誤:", error);
+      
+      // 再嘗試一次其他端點
       try {
-        const response = await fetch(`${API_BASE_URL}/`, {
-          signal: controller.signal,
-          method: 'GET',
-          // 添加 no-cache 避免緩存問題
-          cache: 'no-cache',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-          },
-        });
-        
-        clearTimeout(timeoutId);
-        const isConnected = response.ok;
-        setApiConnected(isConnected);
-        return isConnected;
-      } catch (fetchError) {
-        // 特別處理 fetch 錯誤
-        console.warn("API連接檢查失敗 - 網絡錯誤:", fetchError);
-        clearTimeout(timeoutId);
+        console.log("嘗試備用端點:", `${API_BASE_URL}/status`);
+        const backupResponse = await fetch(`${API_BASE_URL}/status`);
+        const backupConnected = backupResponse.ok;
+        setApiConnected(backupConnected);
+        return backupConnected;
+      } catch (backupError) {
+        console.error("備用端點連接也失敗:", backupError);
         setApiConnected(false);
         return false;
       }
-    } catch (error) {
-      console.error("API連接檢查失敗 - 未知錯誤", error);
-      setApiConnected(false);
-      return false;
     }
   };
 

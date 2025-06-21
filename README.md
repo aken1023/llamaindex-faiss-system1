@@ -45,8 +45,8 @@ chmod +x run.sh
 啟動成功後，可以通過以下地址訪問:
 
 - 前端界面: http://localhost:3000
-- API 服務: http://localhost:8000
-- API 文檔: http://localhost:8000/docs
+- API 服務: http://ragaken.zeabur.app:8000
+- API 文檔: http://ragaken.zeabur.app:8000/docs
 
 ## 手動啟動
 

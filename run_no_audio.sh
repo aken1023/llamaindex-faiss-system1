@@ -19,7 +19,7 @@ echo "[後端] 啟動中..."
 source venv/bin/activate
 nohup python scripts/api_server.py > api_server.log 2>&1 &
 API_PID=$!
-echo "[後端] API 服務已在 http://localhost:8000 啟動 (PID: $API_PID)"
+echo "[後端] API 服務已在 http://ragaken.zeabur.app:8000 啟動 (PID: $API_PID)"
 
 # 等待後端啟動
 echo "[系統] 等待後端服務啟動..."
@@ -42,8 +42,8 @@ echo "======================================================"
 echo "  系統已啟動！"
 echo
 echo "  * 前端界面: http://localhost:3000"
-echo "  * API 服務: http://localhost:8000"
-echo "  * API 文檔: http://localhost:8000/docs"
+echo "  * API 服務: http://ragaken.zeabur.app:8000"
+echo "  * API 文檔: http://ragaken.zeabur.app:8000/docs"
 echo "======================================================"
 echo
 echo "進程 ID:"

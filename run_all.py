@@ -174,7 +174,7 @@ def run_frontend():
     print(f"{Colors.BLUE}[前端] 啟動 Next.js 應用...{Colors.ENDC}")
     
     env = os.environ.copy()
-    env["NEXT_PUBLIC_API_URL"] = "http://localhost:8000"
+    env["NEXT_PUBLIC_API_URL"] = "http://ragaken.zeabur.app:8000"
     
     frontend_process = subprocess.Popen(
         ["npm", "run", "dev"],
@@ -238,8 +238,8 @@ def main():
         print(f"\n{Colors.GREEN}{Colors.BOLD}══════════════════════════════════════════════════════════{Colors.ENDC}")
         print(f"{Colors.GREEN}{Colors.BOLD}系統已成功啟動！{Colors.ENDC}")
         print(f"{Colors.GREEN}前端訪問地址: {Colors.BOLD}http://localhost:3000{Colors.ENDC}")
-        print(f"{Colors.GREEN}API 服務地址: {Colors.BOLD}http://localhost:8000{Colors.ENDC}")
-        print(f"{Colors.GREEN}API 文檔地址: {Colors.BOLD}http://localhost:8000/docs{Colors.ENDC}")
+        print(f"{Colors.GREEN}API 服務地址: {Colors.BOLD}http://ragaken.zeabur.app:8000{Colors.ENDC}")
+        print(f"{Colors.GREEN}API 文檔地址: {Colors.BOLD}http://ragaken.zeabur.app:8000/docs{Colors.ENDC}")
         print(f"{Colors.GREEN}{Colors.BOLD}══════════════════════════════════════════════════════════{Colors.ENDC}")
         print(f"{Colors.YELLOW}按 Ctrl+C 可以關閉所有服務{Colors.ENDC}\n")
         
