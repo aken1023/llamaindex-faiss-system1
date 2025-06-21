@@ -1,5 +1,6 @@
 [build]
-  buildCommand = "npm run build"
+  # 不需要全局建構命令
+  # buildCommand = "npm run build"
 
 [services]
   [services.web]
@@ -10,13 +11,17 @@
 
   [services.api]
     type = "python"
-    buildCommand = "pip install -r scripts/requirements.txt"
-    startCommand = "python scripts/api_server.py"
+    buildCommand = "pip install -r scripts/requirements.txt && pip install PyJWT"
+    # 使用專門為Zeabur環境優化的啟動腳本
+    startCommand = "python scripts/zeabur_start.py"
+    # Zeabur會自動分配PORT環境變量
     port = 8000
     [services.api.env]
       DEEPSEEK_API_KEY = "$DEEPSEEK_API_KEY"
       EMBEDDING_MODEL = "BAAI/bge-base-zh"
       MODEL_NAME = "deepseek-chat"
+      # 設置為單用戶模式(如果需要多用戶模式，改為true)
+      USE_MULTI_USER = "false"
 
 [persistentVolumes]
   [persistentVolumes.storage]
@@ -33,4 +38,5 @@
 
 [env]
   NODE_ENV = "production"
-  NEXT_PUBLIC_API_URL = "$NEXT_PUBLIC_API_URL" 
+  # 明確設定API URL
+  NEXT_PUBLIC_API_URL = "https://ragaken.zeabur.app" 
