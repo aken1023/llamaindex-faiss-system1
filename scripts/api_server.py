@@ -2,15 +2,15 @@
 FastAPI 服務器 - 提供 REST API 接口
 """
 
-import shutil
 import time
 import uuid
+import base64
 from pathlib import Path
 from typing import List, Optional
 
 import edge_tts
 from dotenv import load_dotenv
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
@@ -56,6 +56,13 @@ class TextToSpeechRequest(BaseModel):
     voice: str = "zh-TW-HsiaoChenNeural"  # 默認使用台灣女聲
     rate: str = "+0%"                     # 語速，默認正常
     volume: str = "+0%"                   # 音量，默認正常
+
+
+# 新增：文件上傳請求模型
+class FileUploadRequest(BaseModel):
+    filename: str
+    content_base64: str
+    content_type: Optional[str] = None
 
 
 # 預定義的中文語音列表，以防 edge_tts.list_voices() 失敗
@@ -111,24 +118,29 @@ async def root():
 
 
 @app.post("/upload", response_model=dict)
-async def upload_document(file: UploadFile = File(...)):
-    """上傳文檔"""
+async def upload_document(file_data: FileUploadRequest):
+    """上傳文檔 (Base64編碼)"""
     try:
         # 保存上傳的文件
         upload_dir = Path("documents")
         upload_dir.mkdir(exist_ok=True)
         
-        file_path = upload_dir / file.filename
+        file_path = upload_dir / file_data.filename
+        
+        # 解碼Base64内容
+        file_content = base64.b64decode(file_data.content_base64)
+        
+        # 保存文件
         with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
+            buffer.write(file_content)
         
         # 重新建立索引
         kb_system.load_documents()
         kb_system.build_index()
         
         return {
-            "message": f"文檔 {file.filename} 上傳成功",
-            "filename": file.filename,
+            "message": f"文檔 {file_data.filename} 上傳成功",
+            "filename": file_data.filename,
             "size": file_path.stat().st_size
         }
     except Exception as e:

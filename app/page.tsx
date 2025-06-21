@@ -339,16 +339,25 @@ export default function KnowledgeBaseSystem() {
 
     setIndexStatus("building");
     
-    // 為每個文件創建 FormData 並上傳
+    // 為每個文件轉換為Base64並上傳
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      const formData = new FormData();
-      formData.append("file", file);
       
       try {
+        // 讀取文件並轉換為Base64
+        const fileContent = await readFileAsBase64(file);
+        
+        // 發送Base64編碼的文件內容
         const response = await fetch(`${API_BASE_URL}/upload`, {
           method: "POST",
-          body: formData,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            filename: file.name,
+            content_base64: fileContent,
+            content_type: file.type
+          }),
         });
         
         if (response.ok) {
@@ -363,6 +372,24 @@ export default function KnowledgeBaseSystem() {
     fetchDocuments();
     fetchSystemStatus();
     setIndexStatus("ready");
+  };
+
+  // 輔助函數：讀取文件為Base64格式
+  const readFileAsBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          // 去除Base64編碼的前綴 (例如 "data:application/pdf;base64,")
+          const base64Content = reader.result.split(',')[1];
+          resolve(base64Content);
+        } else {
+          reject(new Error('無法讀取文件內容'));
+        }
+      };
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(file);
+    });
   };
 
   const handleQuery = async (withSpeech = false) => {
