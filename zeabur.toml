@@ -1,5 +1,6 @@
 [build]
-  buildCommand = "npm run build"
+  # 移除這個重複的全局buildCommand，避免衝突
+  # buildCommand = "npm run build"
 
 [services]
   [services.web]
@@ -7,16 +8,23 @@
     buildCommand = "npm run build"
     startCommand = "npm run start"
     port = 3000
+    # 添加健康檢查路徑
+    healthCheckPath = "/"
 
   [services.api]
     type = "python"
-    buildCommand = "pip install -r scripts/requirements.txt"
-    startCommand = "python scripts/api_server.py"
+    buildCommand = "pip install -r scripts/requirements.txt && pip install PyJWT"
+    # 修改為多用戶API服務器
+    startCommand = "python scripts/api_server_multi.py"
     port = 8000
+    # 添加健康檢查路徑
+    healthCheckPath = "/"
     [services.api.env]
       DEEPSEEK_API_KEY = "$DEEPSEEK_API_KEY"
       EMBEDDING_MODEL = "BAAI/bge-base-zh"
       MODEL_NAME = "deepseek-chat"
+      # 添加JWT密鑰，這對多用戶模式是必要的
+      JWT_SECRET_KEY = "$JWT_SECRET_KEY"
 
 [persistentVolumes]
   [persistentVolumes.storage]
@@ -31,6 +39,12 @@
     mountPath = "/app/logs"
     size = "500Mi"
 
+  # 添加用戶數據存儲
+  [persistentVolumes.users]
+    mountPath = "/app/users"
+    size = "1Gi"
+
 [env]
   NODE_ENV = "production"
-  NEXT_PUBLIC_API_URL = "$NEXT_PUBLIC_API_URL" 
+  # 使用明確的URL格式
+  NEXT_PUBLIC_API_URL = "https://ragaken.zeabur.app" 
