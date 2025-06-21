@@ -7,11 +7,10 @@ echo "🚀 開始安裝企業知識庫系統..."
 # 檢查 Python 版本
 python_version=$(python3 --version 2>&1 | grep -oP '\d+\.\d+')
 if [[ $(echo "$python_version >= 3.10" | bc -l) -eq 0 ]]; then
-    echo "❌ 需要 Python 3.10 或更高版本"
-    exit 1
+    echo "⚠️ 警告: 推薦使用 Python 3.10 或更高版本，但會嘗試繼續安裝"
+else
+    echo "✅ Python 版本檢查通過: $python_version"
 fi
-
-echo "✅ Python 版本檢查通過: $python_version"
 
 # 創建虛擬環境
 echo "📦 創建虛擬環境..."
