@@ -25,7 +25,7 @@ echo -e "${GREEN}[後端] 啟動中...${NC}"
 source venv/bin/activate
 nohup python scripts/api_server.py > api_server.log 2>&1 &
 BACKEND_PID=$!
-echo -e "${GREEN}[後端] API 服務已在 http://ragaken.zeabur.app:8000 啟動 (PID: $BACKEND_PID)${NC}"
+echo -e "${GREEN}[後端] API 服務已在 http://localhost:8000 啟動 (PID: $BACKEND_PID)${NC}"
 
 # 等待後端啟動
 echo -e "${YELLOW}[系統] 等待後端服務啟動...${NC}"
@@ -48,8 +48,8 @@ echo -e "${BLUE}======================================================"
 echo -e "  系統已啟動！"
 echo -e ""
 echo -e "  * 前端界面: ${GREEN}http://localhost:3000${BLUE}"
-echo -e "  * API 服務: ${GREEN}http://ragaken.zeabur.app:8000${BLUE}"
-echo -e "  * API 文檔: ${GREEN}http://ragaken.zeabur.app:8000/docs${BLUE}"
+echo -e "  * API 服務: ${GREEN}http://localhost:8000${BLUE}"
+echo -e "  * API 文檔: ${GREEN}http://localhost:8000/docs${BLUE}"
 echo -e "======================================================${NC}"
 echo ""
 echo -e "後端日誌: tail -f api_server.log"

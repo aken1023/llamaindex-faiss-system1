@@ -17,11 +17,11 @@ if [ ! -d "node_modules" ]; then
 fi
 
 # 設定環境變數
-export NEXT_PUBLIC_API_URL=http://ragaken.zeabur.app:8000
+export NEXT_PUBLIC_API_URL=http://localhost:8000
 
 # 啟動前端
 echo -e "${GREEN}[前端] 啟動前端服務...${NC}"
-echo -e "${YELLOW}[提示] 請確保後端API服務已在 http://ragaken.zeabur.app:8000 運行${NC}"
+echo -e "${YELLOW}[提示] 請確保後端API服務已在 http://localhost:8000 運行${NC}"
 echo ""
 echo -e "${BLUE}======================================================${NC}"
 

@@ -1,17 +1,13 @@
 {
   "buildCommand": "npm run build",
   "devCommand": "npm run dev",
-  "installCommand": "npm install",
+  "installCommand": "npm install --legacy-peer-deps",
   "framework": "nextjs",
   "outputDirectory": ".next",
   "regions": ["hkg1"],
-  "env": {
-    "NEXT_PUBLIC_API_URL": "PLACEHOLDER_API_URL"
-  },
-  "rewrites": [
-    {
-      "source": "/api/:path*",
-      "destination": "PLACEHOLDER_API_URL/api/:path*"
+  "functions": {
+    "app/**": {
+      "maxDuration": 30
     }
-  ]
+  }
 } 
